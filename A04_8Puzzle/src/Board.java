@@ -17,21 +17,35 @@ public class Board {
     public int size()   {
     	return this.board.length;
     }
+    
     public int hamming()   {
     	// number of blocks out of place
+    	int inversions = 0;
+    	for (int i = 0; i < board.length; i++) {
+    		for (int j = i + 1; j < board.length; j++) {
+    			try {
+    				if (board[i][j] > board[i+1][j] || (board[i][j] == 0 && inversions % 2 == 1)) inversions++;
+    			} catch(ArrayIndexOutOfBoundsException e) {}
+    		}
+    	}
+    	return inversions;
     }
+    
     public int manhattan()    {
     	// sum of Manhattan distances between blocks and goal
+    	int sum = 0;
+    	
+    	return sum;
     }
+    
     public boolean isGoal()    {
     	// is this board the goal board?
-    	if (this.manhattan() == 0) {
-    		return true;
-    	} return false;
+    	return (this.manhattan() == 0);
     }
+    
     public boolean isSolvable()   {
     	// is this board solvable?
-    	
+    	return this.hamming() % 2 == 0;
     }
     
     public boolean equals(Object y) {
@@ -41,6 +55,7 @@ public class Board {
     
     public Iterable<Board> neighbors()  {
     	// all neighboring boards
+    	return null;
     }
     
     public String toString()   {
