@@ -3,6 +3,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class Board {
 	private int[][] board;
+	private final int N;
 	
     public Board(int[][] blocks)   {
     	// construct a board from an N-by-N array of blocks
@@ -12,6 +13,7 @@ public class Board {
     			this.board[i][j] = blocks[i][j];
     		}
     	}
+    	this.N = blocks.length;
     }
                                            
     public int size()   {
@@ -28,13 +30,21 @@ public class Board {
     			} catch(ArrayIndexOutOfBoundsException e) {}
     		}
     	}
+    	
     	return inversions;
     }
     
     public int manhattan()    {
     	// sum of Manhattan distances between blocks and goal
     	int sum = 0;
-    	
+    	for (int i = 0; i < N; i++) {
+    		for (int j = 0; j < N; j++) {
+    			if (i + j != board[i][j]) {
+    				sum += distance(i,j); 		
+    			}
+    		}
+    		// x - x1 + y - y1
+    	}
     	return sum;
     }
     
@@ -60,7 +70,7 @@ public class Board {
     
     public String toString()   {
     	// string representation of this board (in the output format specified below)
-    	final int N = this.size();
+    	
     	StringBuilder s = new StringBuilder();
         s.append(N + "\n");
         for (int i = 0; i < N; i++) {
@@ -70,6 +80,23 @@ public class Board {
             s.append("\n");
         }
         return s.toString();
+    }
+    
+    private boolean isEmpty(int node) {
+    	return node == 0;
+    }
+    private int distance(int x, int y) {
+    	int block = node(x,y);
+    	return (isEmpty(block)) ? 0 : Math.abs(x - col(block) + Math.abs(y - row(block)));
+    }
+    private int node(int x, int y) {
+    	return board[x][y];
+    }
+    private int row(int r) {
+    	return (r -1) / N;
+    }
+    private int col(int c) {
+    	return (c - 1) % N;
     }
 
     public static void main(String[] args) {
