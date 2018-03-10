@@ -60,7 +60,12 @@ public class Board {
     
     public boolean equals(Object y) {
     	// does this board equal y?
-    	return this.equals(y);
+    	if (this == y) return true;
+    	if (y==null || !(y instanceof Board) || ((Board)y).board.length != board.length) return false;
+    	for (int row = 0; row < board.length; row++)
+            for (int col = 0; col < board.length; col++)
+                if (((Board) y).board[row][col] != node(row, col)) return false;
+    	return true;
     }
     
     public Iterable<Board> neighbors()  {
