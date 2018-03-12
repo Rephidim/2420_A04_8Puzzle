@@ -86,27 +86,31 @@ public class Board {
 	public Iterable<Board> neighbors() {
 
 		Queue<Board> qu = new Queue<Board>();
-		Board dup = new Board(this.dup());
+		Board d;
 
 		// change position with above block
 		if (emptyRow > 0) {
-			dup.swap(emptyRow, emptyCol, emptyRow - 1, emptyCol);
-			qu.enqueue(dup);
+			d = new Board(dup());
+			d.swap(emptyRow, emptyCol, emptyRow - 1, emptyCol);
+			qu.enqueue(d);
 		}
 		// change position with block below
 		if (emptyRow < N - 1) {
-			dup.swap(emptyRow, emptyCol, emptyRow + 1, emptyCol);
-			qu.enqueue(dup);
+			d = new Board(dup());
+			d.swap(emptyRow, emptyCol, emptyRow + 1, emptyCol);
+			qu.enqueue(d);
 		}
 		// change position to the left
-		if (emptyRow > 0) {
-			dup.swap(emptyRow, emptyCol, emptyRow, emptyCol - 1);
-			qu.enqueue(dup);
+		if (emptyCol > 0) {
+			d = new Board(dup());
+			d.swap(emptyRow, emptyCol, emptyRow, emptyCol - 1);
+			qu.enqueue(d);
 		}
 		// change position to the right
-		if (emptyRow < N - 1) {
-			dup.swap(emptyRow, emptyCol, emptyRow, emptyCol + 1);
-			qu.enqueue(dup);
+		if (emptyCol < N - 1) {
+			d = new Board(dup());
+			d.swap(emptyRow, emptyCol, emptyRow, emptyCol + 1);
+			qu.enqueue(d);
 		}
 		return qu;
 	}
