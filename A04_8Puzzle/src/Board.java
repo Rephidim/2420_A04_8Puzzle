@@ -23,7 +23,6 @@ public class Board {
 				this.board[i][j] = blocks[i][j];
 			}
 		}
-
 	}
 
 	public int size() {
@@ -42,7 +41,6 @@ public class Board {
 				}
 			}
 		}
-
 		return inversions;
 	}
 
@@ -55,7 +53,6 @@ public class Board {
 					sum += distance(i, j);
 				}
 			}
-			// x - x1 + y - y1
 		}
 		return sum;
 	}
@@ -124,7 +121,6 @@ public class Board {
 			}
 		}
 		return dup;
-
 	}
 
 	private void swap(int row1, int col1, int row2, int col2) {
@@ -142,7 +138,6 @@ public class Board {
 			emptyRow = row2;
 			emptyCol = col2;
 		}
-
 	}
 
 	public String toString() {
