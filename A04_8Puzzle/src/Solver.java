@@ -89,9 +89,9 @@ public class Solver {
     }
 
     /* Returns whether or not the input board was solvable. */
-//    public boolean isSolvable() {
-//        return solvable;
-//    }
+    public boolean isSolvable() {
+        return solvable;
+    }
 
     /* Returns the number of moves to solve the input board or -1 if the board wasn't
      * solvable. */
@@ -135,7 +135,7 @@ public class Solver {
         Solver solver = new Solver(initial);
 
         // print solution to standard output
-        if (!initial.isSolvable())
+        if (!solver.isSolvable())
             StdOut.println("No solution possible");
         else {
             StdOut.println("Minimum number of moves = " + solver.moves());
