@@ -1,195 +1,146 @@
-import edu.princeton.cs.algs4.Queue;
+import java.util.LinkedList;
 
 public class Board {
-	private int[][] board;
-	private final int N;
-	// holds position of 0
-	private int emptyRow;
-	private int emptyCol;
+    private static final int BLANK = 0;
+    private final int N;
 
-	public Board(int[][] blocks) {
-		// construct a board from an N-by-N array of blocks
-		// (where blocks[i][j] = block in row i, column j)
-		N = blocks.length;
-		board = new int[N][N];
-		for (int i = 0; i < blocks.length; i++) {
-			for (int j = 0; j < blocks.length; j++) {
-				// assigns 0 its position
-				if (blocks[i][j] == 0) {
-					emptyRow = i;
-					emptyCol = j;
-				}
-				board[i][j] = blocks[i][j];
-			}
-		}
+    private int[][] board;
 
-	}
+    public Board(int[][] blocks) {
+    	this.N = blocks.length;
+        this.board = copy(blocks);
+    }
 
-	public int dimension() {
-		return N;
-	}
+    private int[][] copy(int[][] blocks) {
+        int[][] copy = new int[N][N];
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                copy[i][j] = blocks[i][j];
 
-	  public int hamming() {
-	        int block;
-	        int total = 0;
-	        for (int i = 0; i < N; i++) {
-	            for (int j = 0; j < N; j++) {
-	                block = board[i][j];
-	                if (block != 0)
-	                    total += hammingDistance(block, i, j);
-	            }
-	        }
-	        return total;
-	    }
-	  
-	  private int hammingDistance(int block, int i, int j) {
-	        int goalRow = (block - 1) / N;
-	        int goalCol = (block - 1) % N;
-	        if (goalRow == i && goalCol == j)
-	            return 0;
-	        return 1;
-	    }
+        return copy;
+    }
 
-	public int manhattan() {
-		// sum of Manhattan distances between blocks and goal
-		int sum = 0;
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < N; j++) {
-				if (i + j != board[i][j]) {
-					sum += distance(i, j);
-				}
-			}
-			// x - x1 + y - y1
-		}
-		return sum;
-	}
-	 public Board twin() {
-	        int tmp;
-	        Board twinBoard = new Board(this.dup());
-	        // Switch row 1 if there's an empty block in first blocks of row 0
-	        if (board[0][0] == 0 || board[0][1] == 0) {
-	            twinBoard.swap(1, 0, 1, 1);
-	        }   
-	        // Switch row 0 if there's no empty block in first blocks of row 0
-	        else {
-	            twinBoard.swap(0, 0, 0, 1);
-	        }
-	        return twinBoard;
-	    }
+    public int size() {
+        return N;
+    }
 
-	public boolean isGoal() {
-		// is this board the goal board?
-		return (this.hamming() == 0);
-	}
+    public int hamming() {
+        int inversions = 0;
+        for (int x = 0; x < N; x++)
+            for (int y = 0; y < N; y++)
+                if (blockOutOfPosition(x, y)) inversions++;
 
+        return inversions;
+    }
 
-	public boolean equals(Object y) {
-		// does this board equal y?
-		if (this == y)
-			return true;
-		if (y == null || !(y instanceof Board) || ((Board) y).board.length != board.length)
-			return false;
-		for (int row = 0; row < N; row++)
-			for (int col = 0; col < N; col++)
-				if (((Board) y).board[row][col] != node(row, col))
-					return false;
-		return true;
-	}
+    private boolean blockOutOfPosition(int x, int y) {
+        int n = node(x, y);
+        return !isEmpty(n) && n != goalFor(x, y);
+    }
 
-	public Iterable<Board> neighbors() {
+    private int goalFor(int x, int y) {
+        return x*size() + y + 1;
+    }
 
-		Queue<Board> qu = new Queue<Board>();
-		Board d;
+    private boolean isEmpty(int block) {
+        return block == BLANK;
+    }
 
-		// change position with above block
-		if (emptyRow > 0) {
-			d = new Board(dup());
-			d.swap(emptyRow, emptyCol, emptyRow - 1, emptyCol);
-			qu.enqueue(d);
-		}
-		// change position with block below
-		if (emptyRow < N - 1) {
-			d = new Board(dup());
-			d.swap(emptyRow, emptyCol, emptyRow + 1, emptyCol);
-			qu.enqueue(d);
-		}
-		// change position to the left
-		if (emptyCol > 0) {
-			d = new Board(dup());
-			d.swap(emptyRow, emptyCol, emptyRow, emptyCol - 1);
-			qu.enqueue(d);
-		}
-		// change position to the right
-		if (emptyCol < N - 1) {
-			d = new Board(dup());
-			d.swap(emptyRow, emptyCol, emptyRow, emptyCol + 1);
-			qu.enqueue(d);
-		}
-		return qu;
-	}
+    public int manhattan() {
+        int sum = 0;
+        for (int row = 0; row < N; row++)
+            for (int col = 0; col < N; col++)
+                sum += distance(row, col);
 
-	private int[][] dup() {
-		// copy of matrix to iterate through
-		int[][] dup = new int[N][N];
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < N; j++) {
-				dup[i][j] = board[i][j];
-			}
-		}
-		return dup;
+        return sum;
+    }
 
-	}
+    private int distance(int row, int col) {
+        int block = node(row, col);
 
-	private void swap(int row1, int col1, int row2, int col2) {
-		// moves piece 
-		int temp = board[row1][col1];
-		board[row1][col1] = board[row2][col2];
-		board[row2][col2] = temp;
+        return (isEmpty(block)) ? 0 : Math.abs(row - row(block)) + Math.abs(col - col(block));
+    }
 
-		// updates position of 0 if moved
-		if (board[row1][col1] == 0) {
-			emptyRow = row1;
-			emptyCol = col1;
-		}
-		if (board[row2][col2] == 0) {
-			emptyRow = row2;
-			emptyCol = col2;
-		}
+    private int node(int x, int y) {
+        return board[x][y];
+    }
 
-	}
+    private int row (int block) {
+        return (block - 1) / size();
+    }
 
-	public String toString() {
-		// string representation of this board (in the output format specified below)
+    private int col (int block) {
+        return (block - 1) % size();
+    }
 
-		StringBuilder s = new StringBuilder();
-		s.append(N + "\n");
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < N; j++) {
-				s.append(String.format("%2d ", board[i][j]));
-			}
-			s.append("\n");
-		}
-		return s.toString();
-	}
+    public boolean isGoal() {
+    	return this.hamming() == 0;
+    }
 
-	private boolean isEmpty(int node) {
-		return node == 0;
-	}
+    public Board twin() {
+        for (int row = 0; row < N; row++)
+            for (int col = 0; col < N - 1; col++)
+                if (!isEmpty(node(row, col)) && !isEmpty(node(row, col + 1)))
+                    return new Board(swap(row, col, row, col + 1));
+        throw new RuntimeException();
+    }
 
-	private int distance(int x, int y) {
-		int block = node(x, y);
-		return (isEmpty(block)) ? 0 : Math.abs(x - col(block) + Math.abs(y - row(block)));
-	}
+    private int[][] swap(int row1, int col1, int row2, int col2) {
+        int[][] copy = copy(board);
+        int tmp = copy[row1][col1];
+        copy[row1][col1] = copy[row2][col2];
+        copy[row2][col2] = tmp;
 
-	private int node(int x, int y) {
-		return board[x][y];
-	}
+        return copy;
+    }
 
-	private int row(int r) {
-		return (r - 1) / N;
-	}
+    public boolean equals(Object y) {
+        if (y==this) return true;
+        if (y==null || !(y instanceof Board) || ((Board)y).N != N) return false;
+        for (int row = 0; row < N; row++)
+            for (int col = 0; col < N; col++)
+                if (((Board) y).board[row][col] != node(row, col)) return false;
 
-	private int col(int c) {
-		return (c - 1) % N;
-	}
+        return true;
+    }
+
+    public Iterable<Board> neighbors() {
+        LinkedList<Board> neighbors = new LinkedList<Board>();
+
+        int[] location = blankSpot();
+        int spaceRow = location[0];
+        int spaceCol = location[1];
+
+        if (spaceRow > 0)               neighbors.add(new Board(swap(spaceRow, spaceCol, spaceRow - 1, spaceCol)));
+        if (spaceRow < size() - 1) neighbors.add(new Board(swap(spaceRow, spaceCol, spaceRow + 1, spaceCol)));
+        if (spaceCol > 0)               neighbors.add(new Board(swap(spaceRow, spaceCol, spaceRow, spaceCol - 1)));
+        if (spaceCol < size() - 1) neighbors.add(new Board(swap(spaceRow, spaceCol, spaceRow, spaceCol + 1)));
+
+        return neighbors;
+    }
+    
+    private int[] blankSpot() {
+        for (int row = 0; row < N; row++)
+            for (int col = 0; col < N; col++)
+                if (isEmpty(node(row, col))) {
+                    int[] location = new int[2];
+                    location[0] = row;
+                    location[1] = col;
+
+                    return location;
+                }
+        throw new RuntimeException();
+    }
+
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(size() + "\n");
+        for (int row = 0; row < N; row++) {
+            for (int col = 0; col < N; col++)
+                str.append(String.format("%2d ", node(row, col)));
+            str.append("\n");
+        }
+
+        return str.toString();
+    }
 }
