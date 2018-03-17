@@ -1,8 +1,4 @@
-
-
-import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
-import edu.princeton.cs.algs4.StdOut;
 
 public class Board {
 	private int[][] board;
@@ -14,7 +10,7 @@ public class Board {
 	public Board(int[][] blocks) {
 		// construct a board from an N-by-N array of blocks
 		// (where blocks[i][j] = block in row i, column j)
-		this.N = blocks.length;
+		N = blocks.length;
 		board = new int[N][N];
 		for (int i = 0; i < blocks.length; i++) {
 			for (int j = 0; j < blocks.length; j++) {
@@ -23,7 +19,7 @@ public class Board {
 					emptyRow = i;
 					emptyCol = j;
 				}
-				this.board[i][j] = blocks[i][j];
+				board[i][j] = blocks[i][j];
 			}
 		}
 
@@ -86,10 +82,6 @@ public class Board {
 		return (this.hamming() == 0);
 	}
 
-	public boolean isSolvable() {
-		// is this board solvable?
-		return this.hamming() % 2 == 0;
-	}
 
 	public boolean equals(Object y) {
 		// does this board equal y?
@@ -97,8 +89,8 @@ public class Board {
 			return true;
 		if (y == null || !(y instanceof Board) || ((Board) y).board.length != board.length)
 			return false;
-		for (int row = 0; row < board.length; row++)
-			for (int col = 0; col < board.length; col++)
+		for (int row = 0; row < N; row++)
+			for (int col = 0; col < N; col++)
 				if (((Board) y).board[row][col] != node(row, col))
 					return false;
 		return true;
