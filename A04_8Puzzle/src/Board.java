@@ -1,3 +1,5 @@
+
+
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
@@ -13,6 +15,7 @@ public class Board {
 		// construct a board from an N-by-N array of blocks
 		// (where blocks[i][j] = block in row i, column j)
 		this.N = blocks.length;
+		board = new int[N][N];
 		for (int i = 0; i < blocks.length; i++) {
 			for (int j = 0; j < blocks.length; j++) {
 				// assigns 0 its position
@@ -23,26 +26,33 @@ public class Board {
 				this.board[i][j] = blocks[i][j];
 			}
 		}
+
 	}
 
-	public int size() {
-		return this.board.length;
+	public int dimension() {
+		return N;
 	}
 
-	public int hamming() {
-		// number of blocks out of place
-		int inversions = 0;
-		for (int i = 0; i < board.length; i++) {
-			for (int j = i + 1; j < board.length; j++) {
-				try {
-					if (board[i][j] > board[i + 1][j] || (board[i][j] == 0 && inversions % 2 == 1))
-						inversions++;
-				} catch (ArrayIndexOutOfBoundsException e) {
-				}
-			}
-		}
-		return inversions;
-	}
+	  public int hamming() {
+	        int block;
+	        int total = 0;
+	        for (int i = 0; i < N; i++) {
+	            for (int j = 0; j < N; j++) {
+	                block = board[i][j];
+	                if (block != 0)
+	                    total += hammingDistance(block, i, j);
+	            }
+	        }
+	        return total;
+	    }
+	  
+	  private int hammingDistance(int block, int i, int j) {
+	        int goalRow = (block - 1) / N;
+	        int goalCol = (block - 1) % N;
+	        if (goalRow == i && goalCol == j)
+	            return 0;
+	        return 1;
+	    }
 
 	public int manhattan() {
 		// sum of Manhattan distances between blocks and goal
@@ -53,13 +63,27 @@ public class Board {
 					sum += distance(i, j);
 				}
 			}
+			// x - x1 + y - y1
 		}
 		return sum;
 	}
+	 public Board twin() {
+	        int tmp;
+	        Board twinBoard = new Board(this.dup());
+	        // Switch row 1 if there's an empty block in first blocks of row 0
+	        if (board[0][0] == 0 || board[0][1] == 0) {
+	            twinBoard.swap(1, 0, 1, 1);
+	        }   
+	        // Switch row 0 if there's no empty block in first blocks of row 0
+	        else {
+	            twinBoard.swap(0, 0, 0, 1);
+	        }
+	        return twinBoard;
+	    }
 
 	public boolean isGoal() {
 		// is this board the goal board?
-		return (this.manhattan() == 0);
+		return (this.hamming() == 0);
 	}
 
 	public boolean isSolvable() {
@@ -121,10 +145,11 @@ public class Board {
 			}
 		}
 		return dup;
+
 	}
 
 	private void swap(int row1, int col1, int row2, int col2) {
-
+		// moves piece 
 		int temp = board[row1][col1];
 		board[row1][col1] = board[row2][col2];
 		board[row2][col2] = temp;
@@ -138,6 +163,7 @@ public class Board {
 			emptyRow = row2;
 			emptyCol = col2;
 		}
+
 	}
 
 	public String toString() {
@@ -173,30 +199,5 @@ public class Board {
 
 	private int col(int c) {
 		return (c - 1) % N;
-	}
-
-	public static void main(String[] args) {
-		// unit tests (not graded)
-		// create initial board from file
-		In in = new In(args[0]);
-		int N = in.readInt();
-		int[][] blocks = new int[N][N];
-		for (int i = 0; i < N; i++)
-			for (int j = 0; j < N; j++)
-				blocks[i][j] = in.readInt();
-		Board initial = new Board(blocks);
-
-		// check if puzzle is solvable; if so, solve it and output solution
-		if (initial.isSolvable()) {
-			Solver solver = new Solver(initial);
-			StdOut.println("Minimum number of moves = " + solver.moves());
-			for (Board board : solver.solution())
-				StdOut.println(board);
-		}
-
-		// if not, report unsolvable
-		else {
-			StdOut.println("Unsolvable puzzle");
-		}
 	}
 }
