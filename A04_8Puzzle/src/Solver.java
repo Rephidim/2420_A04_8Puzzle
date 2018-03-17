@@ -1,121 +1,74 @@
-
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
 public class Solver {
-
-    // MinPQ is from algs4 library
-    /* Priority queues that store future board states. */
-    private MinPQ<SearchNode> initPQ;
-    private MinPQ<SearchNode> twinPQ;
-    /* Whether the puzzle is solvable */
-    private boolean solvable;
-    /* Solution. null if the input board is not solvable. */
-    private SearchNode finalBoard;
-
-    /* Search node class. Stores the board state, the number of moves to
-     * get to this state, and the previous Search node that led to this
-     * board state. */
-    private class SearchNode implements Comparable<SearchNode> {
+    private class Move implements Comparable<Move> {
+        private Move previous;
         private Board board;
-        private int moves;
-        private SearchNode prev;
+        private int numMoves = 0;
 
-        public SearchNode(Board b, int m, SearchNode sn) {
-            board = b;
-            moves = m;
-            prev = sn;
+        public Move(Board board) {
+            this.board = board;
         }
 
-        /* Implements the priority function:
-         * PF = distance + moves to get to the current board state
-         * Uncomment the appropriate lines to use either hamming or manhattan
-         * distances. */
-        public int compareTo(SearchNode other) {
-            //int thisHamming = this.board.hamming() + this.moves;
-            //int otherHamming = this.board.hamming() + other.moves;
-            //return thisHamming - otherHamming;
-            int thisManhattan = this.board.manhattan() + this.moves;
-            int otherManhattan = other.board.manhattan() + other.moves;
-            return thisManhattan - otherManhattan;
+        public Move(Board board, Move previous) {
+            this.board = board;
+            this.previous = previous;
+            this.numMoves = previous.numMoves + 1;
+        }
+
+        public int compareTo(Move move) {
+            return (this.board.manhattan() - move.board.manhattan()) + (this.numMoves - move.numMoves);
         }
     }
 
-    /* Solves a given input board:
-     * Starting with the initial configuration and a twin configuration (with two
-     * adjacent row elements swapped), simultaneously update the boards as follows:
-     * If the current board (initial configuration) is a solution, store that search
-     * node. The input board is solvable.
-     * If the current board (twin configuration) is a solution, the input board is
-     * not solvable.
-     * Otherwise, look at all neighboring configurations and put them in the priority
-     * queue.
-     */
+    private Move finalBoard;
+
     public Solver(Board initial) {
-        initPQ = new MinPQ<SearchNode>();
-        twinPQ = new MinPQ<SearchNode>();
-        initPQ.insert(new SearchNode(initial, 0, null));
-        twinPQ.insert(new SearchNode(initial.twin(), 0, null));
-        SearchNode initSN;
-        SearchNode twinSN;
-        
-        while (true) {
-            initSN = initPQ.delMin();
-            twinSN = twinPQ.delMin();
+        MinPQ<Move> moves = new MinPQ<Move>();
+        moves.insert(new Move(initial));
 
-            if (initSN.board.isGoal()) {
-                finalBoard = initSN;
-                solvable = true;
-                break;
-            }
-            if (twinSN.board.isGoal()) {
-                finalBoard = twinSN;
-               solvable = false;
-                break;
-            }
-            for (Board initBoard : initSN.board.neighbors()) {
-                if (initSN.prev == null || !initBoard.equals(initSN.prev.board))
-                    initPQ.insert(new SearchNode(initBoard, initSN.moves + 1, 
-                    initSN));
-            }
-            for (Board twinBoard : twinSN.board.neighbors()) {
-                if (twinSN.prev == null || !twinBoard.equals(twinSN.prev.board))
-                    twinPQ.insert(new SearchNode(twinBoard, twinSN.moves + 1, 
-                    twinSN));
-            }
+        MinPQ<Move> twinMoves = new MinPQ<Move>();
+        twinMoves.insert(new Move(initial.twin()));
+
+        while(true) {
+            finalBoard = expand(moves);
+            if (finalBoard != null || expand(twinMoves) != null) return;
         }
     }
 
-    /* Returns whether or not the input board was solvable. */
-    public boolean isSolvable() {
-        return solvable;
-    }
-
-    /* Returns the number of moves to solve the input board or -1 if the board wasn't
-     * solvable. */
-    public int moves() {
-        if (this.solvable)
-            return finalBoard.moves;
-        return -1;
-    }
-
-    /* Returns a stack of the board configurations from the input board to the final
-     * (goal) configuration. The bottom of the stack should be the input board and
-     * the top of the stack should be the solved board. */
-    public Iterable<Board> solution() {
-        if (this.solvable) {
-            // Stack is from algs4 library
-            Stack<Board> s = new Stack<Board>();
-            SearchNode curr = finalBoard;
-            while (curr != null) {
-                s.push(curr.board);
-                curr = curr.prev;
+    private Move expand(MinPQ<Move> moves) {
+        if(moves.isEmpty()) return null;
+        Move bestMove = moves.delMin();
+        if (bestMove.board.isGoal()) return bestMove;
+        for (Board neighbor : bestMove.board.neighbors()) {
+            if (bestMove.previous == null || !neighbor.equals(bestMove.previous.board)) {
+                moves.insert(new Move(neighbor, bestMove));
             }
-            return s;
         }
         return null;
+    }
+
+    public boolean isSolvable() {
+        return (finalBoard != null);
+    }
+
+    public int moves() {
+        return isSolvable() ? finalBoard.numMoves : -1;
+    }
+
+    public Iterable<Board> solution() {
+        if (!isSolvable()) return null;
+
+        Stack<Board> moves = new Stack<Board>();
+        while(finalBoard != null) {
+            moves.push(finalBoard.board);
+            finalBoard = finalBoard.previous;
+        }
+
+        return moves;
     }
 
     /*
@@ -123,7 +76,7 @@ public class Solver {
      */
     public static void main(String[] args) {
         // create initial board from file
-        In in = new In("src//a04//puzzle.txt");
+        In in = new In("src//main//puzzle3x3-01.txt");
         int N = in.readInt();
         int[][] blocks = new int[N][N];
         for (int i = 0; i < N; i++)
@@ -141,8 +94,6 @@ public class Solver {
             StdOut.println("Minimum number of moves = " + solver.moves());
             for (Board board : solver.solution())
                 StdOut.println(board);
-            
-            System.out.print(1%2);
         }
     }
 }
